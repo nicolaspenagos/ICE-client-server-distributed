@@ -28,7 +28,7 @@ public class PrinterI implements Demo.Printer
     	long fibo1 = 1;
     	long fibo2 = 2;
 
-    	System.out.println(fibo1);
+    	System.out.print(fibo1);
     	for(long i=2; i<num; i++){
     		System.out.print(fibo2 + " ");
     	  	fibo2 = fibo1 + fibo2;

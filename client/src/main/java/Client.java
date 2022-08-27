@@ -56,7 +56,7 @@ public class Client
             
                 String msg = hostname+":"+line;
                 printer.printString(msg);
-                System.out.println(msg);
+                
 
                 if(line.equals(EXIT)){
                     break;
