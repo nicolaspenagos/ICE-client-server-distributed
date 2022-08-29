@@ -11,12 +11,17 @@ public class PrinterI implements Demo.Printer
         	if(num>0){
 				fibo(num);
         	}else{
-        		System.out.println(s);
-        		//Retonar 0
+        	   System.out.println(s);
+        	   //Retonar 0
         	}
         	
         }catch(NumberFormatException e){
-			System.out.println(s);
+            if(parts[1].equals("exit")){
+                System.out.println(parts[0]+" DISCONNECTED"); 
+            }else{
+                System.out.println(s); 
+            }
+			
 			//Retonar 0
 
         }

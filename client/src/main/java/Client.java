@@ -59,6 +59,7 @@ public class Client
                 
 
                 if(line.equals(EXIT)){
+                    System.out.println("\nCLOSING CONNECTION...\n-------------------------------------------------- \n\n");
                     break;
                 }
 
