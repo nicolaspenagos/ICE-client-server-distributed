@@ -1,6 +1,6 @@
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 
 public class Client
 {
@@ -25,7 +25,7 @@ public class Client
             Demo.PrinterPrx twoway = Demo.PrinterPrx.checkedCast(
                 communicator.propertyToProxy("Printer.Proxy")).ice_twoway().ice_secure(false);
             //Demo.PrinterPrx printer = Demo.PrinterPrx.checkedCast(base);
-            Demo.PrinterPrx printer = twoway.ice_oneway();
+            Demo.PrinterPrx printer = twoway.ice_twoway();
 
             if(printer == null)
             {
@@ -33,9 +33,7 @@ public class Client
             }
 
           
-            hostname = communicator.getProperties().getProperty("Ice.Default.Host");
-            //printer.printString("--------------------------------------------------");
-            //printer.printString(hostname+" CONNECTED!");
+            hostname = f("hostname");
             run(printer);
         }
     }
@@ -55,7 +53,7 @@ public class Client
                 String line = reader.readLine();
             
                 String msg = hostname+":"+line;
-                printer.printString(msg);
+                System.out.println("--> "+printer.printString(msg));
                 
 
                 if(line.equals(EXIT)){
@@ -78,5 +76,27 @@ public class Client
         System.out.println("\n-------------------------------------------------- \n");
         System.out.println("HELLO "+hostname);
         System.out.println("PLEASE ENTER A NUMBER OR 'exit' TO EXIT: \n");
+    }
+
+    public static String f(String m)
+    {
+        String str = null, output = "";
+
+        InputStream s;
+        BufferedReader r;
+
+        try {
+            Process p = Runtime.getRuntime().exec(m);
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream())); 
+            while ((str = br.readLine()) != null) 
+            output += str + System.getProperty("line.separator"); 
+            br.close(); 
+            return output;
+        }
+        catch(Exception ex) {
+        }
+
+        return output;
     }
 }

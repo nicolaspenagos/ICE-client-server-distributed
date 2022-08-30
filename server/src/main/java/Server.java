@@ -31,8 +31,8 @@ public class Server
     }
 
     public static void printCLI(){
-        System.out.println("\n-------------------------------------------------- \n");
-        System.out.println("SERVER RUNNING: \n");
+        System.out.println("\n-------------------------------------------------- \n\n");
+        System.out.println("SERVER RUNNING: ");
     }
 
 }

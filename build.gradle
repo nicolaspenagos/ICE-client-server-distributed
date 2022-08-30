@@ -32,7 +32,7 @@ subprojects {
     // Both Client and Server depend only on Ice JAR
     //
     dependencies {
-        implementation 'com.zeroc:ice:3.7.6'
+        implementation 'com.zeroc:ice:3.7.7'
     }
  
     //
