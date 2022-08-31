@@ -1,5 +1,7 @@
 # ICE-client-server-distributed
 
+Connection and implementation of a distributed server-client system using ICE middleware.
+
 ## Compile
 
 ```sh
