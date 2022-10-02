@@ -1,6 +1,8 @@
+import java.math.BigInteger;
+
 public class PrinterI implements Demo.Printer
 {
-    public long printString(String s, com.zeroc.Ice.Current current)
+    public String printString(String s, com.zeroc.Ice.Current current)
     {
   
         System.out.println("\n");
@@ -9,12 +11,12 @@ public class PrinterI implements Demo.Printer
         String clientHostname = parts[0];
 
         try{
-        	long num = Long.parseLong(parts[1]);
-        	if(num>0){
-				return fibo(num, clientHostname);
+        	BigInteger num = new BigInteger(parts[1]);
+        	if(num.compareTo(BigInteger.ZERO)>0){
+				return fibo(num, clientHostname).toString();
         	}else{
         	   System.out.print(s);
-        	   return 0;
+        	   return BigInteger.ZERO.toString();
         	}
         	
         }catch(NumberFormatException e){
@@ -24,22 +26,22 @@ public class PrinterI implements Demo.Printer
                 System.out.print(parts[0]+": "+parts[1]); 
             }
 			
-			return 0;
+			return BigInteger.ZERO.toString();
 
         }
 
         
     }
 
-    public long fibo(long num, String clientHostname){
-    	long fibo1 = 1;
-    	long fibo2 = 2;
+    public BigInteger fibo(BigInteger num, String clientHostname){
+    	BigInteger fibo1 = BigInteger.ONE;
+    	BigInteger fibo2 = BigInteger.valueOf(2);
 
     	System.out.print(clientHostname+": "+fibo1+" ");
-    	for(long i=2; i<num; i++){
+    	for(BigInteger i= BigInteger.valueOf(2); i.compareTo(num)<0; i = i.add(BigInteger.ONE)){
     		System.out.print(fibo2 + " ");
-    	  	fibo2 = fibo1 + fibo2;
-           	fibo1 = fibo2 - fibo1;
+    	  	fibo2 = fibo1.add(fibo2);
+           	fibo1 = fibo2.subtract(fibo1);
             
     	}
         return fibo1;

@@ -2,6 +2,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.*;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class Client
 {
 
@@ -12,12 +15,7 @@ public class Client
     public static void main(String[] args)
     {
 
-        
-        
-
         java.util.List<String> extraArgs = new java.util.ArrayList<>();
-
-  
 
         try(com.zeroc.Ice.Communicator communicator = com.zeroc.Ice.Util.initialize(args,"config.client",extraArgs))
         {
@@ -34,11 +32,47 @@ public class Client
 
           
             hostname = f("hostname");
-            run(printer);
+            runStressExperiment(printer, args[0]);
+            //run(printer);
+
         }
     }
 
-    public static void run(Demo.PrinterPrx printer){
+    public static void runStressExperiment(Demo.PrinterPrx printer, String number){
+          String msg = hostname+":"+number;
+          System.out.println("--> "+printer.printString(msg));
+    }
+    
+
+    public static String f(String m)
+    {
+
+        String str = null, output = "";
+
+        InputStream s;
+        BufferedReader r;
+
+        try {
+            Process p = Runtime.getRuntime().exec(m);
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream())); 
+            while ((str = br.readLine()) != null) 
+            output += str + System.getProperty("line.separator"); 
+            br.close(); 
+            return output;
+        }
+        catch(Exception ex) {
+        }
+
+        return output;
+    }
+
+
+    /*
+    *   FORMER EXERCISE CODE
+    */
+    public static void run(Demo.PrinterPrx printer)
+    {
 
         printCLI();
 
@@ -68,35 +102,51 @@ public class Client
 
         }
 
-    
-
     }
 
-    public static void printCLI(){
+    public static void printCLI()
+    {
         System.out.println("\n-------------------------------------------------- \n");
         System.out.println("HELLO "+hostname);
         System.out.println("PLEASE ENTER A NUMBER OR 'exit' TO EXIT: \n");
     }
 
-    public static String f(String m)
+    /*
+    
+    public static void runStressExperiment(Demo.PrinterPrx printer, int number, int numberOfConcurrentRequests)
     {
-        String str = null, output = "";
 
-        InputStream s;
-        BufferedReader r;
+        int coreCount = Runtime.getRuntime().availableProcessors();
+        ExecutorService pool = Executors.newFixedThreadPool(coreCount);
+        
 
-        try {
-            Process p = Runtime.getRuntime().exec(m);
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream())); 
-            while ((str = br.readLine()) != null) 
-            output += str + System.getProperty("line.separator"); 
-            br.close(); 
-            return output;
+        for(int i=0; i<numberOfConcurrentRequests; i++){
+            
+            
+            pool.execute(
+
+                new Task(printer, number, hostname)
+
+            );
+
+
         }
-        catch(Exception ex) {
+
+        pool.shutdown();
+        while(!pool.isTerminated()){
+            Thread.yield();
         }
 
-        return output;
     }
+    */
+
+   
 }
+
+
+
+
+
+
+
