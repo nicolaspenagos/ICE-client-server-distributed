@@ -145,7 +145,7 @@ IV. CONCLUSIONES:
 
 3. El número máximo que el servidor puede resolver atendiendo a al menos más de un servidor se encuentra entre 60000 y 70000
 
-
+4. La ausencia de concurrencia es la responsable de que los clientes no atendidos lancen la excepción.
 
 
 
