@@ -2,148 +2,82 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.*;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-public class Client
-{
+public class Client {
 
     public static final String EXIT = "exit";
     private static String hostname = "";
 
-
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) {
 
         java.util.List<String> extraArgs = new java.util.ArrayList<>();
 
-        try(com.zeroc.Ice.Communicator communicator = com.zeroc.Ice.Util.initialize(args,"config.client",extraArgs))
-        {
+        try (com.zeroc.Ice.Communicator communicator = com.zeroc.Ice.Util.initialize(args, "config.client",
+                extraArgs)) {
 
-            long startTime = System.currentTimeMillis();
-            try{
-                //com.zeroc.Ice.ObjectPrx base = communicator.stringToProxy("SimplePrinter:default -p 10000");
-                Demo.PrinterPrx twoway = Demo.PrinterPrx.checkedCast(
-                    communicator.propertyToProxy("Printer.Proxy")).ice_twoway().ice_secure(false);
-                //Demo.PrinterPrx printer = Demo.PrinterPrx.checkedCast(base);
-                Demo.PrinterPrx printer = twoway.ice_twoway();
+            // Printer configuration
+            Demo.PrinterPrx twoway = Demo.PrinterPrx.checkedCast(communicator.propertyToProxy("Printer.Proxy")).ice_twoway().ice_secure(false);
+            Demo.PrinterPrx printer = twoway.ice_twoway();
 
-                if(printer == null)
-                {
-                    throw new Error("Invalid proxy");
-                }
-
-              
-                hostname = f("hostname");
-
-                if(args.length == 1){
-                    sendSingleRequest(printer, (args[0]));
-                }else if(args.length == 2){
-                    runStressExperiment(printer, args[0], args[1]);
-                }else{
-                    run(printer);
-                }
-            }catch(Exception e){
-             System.out.println("Connection Timeout Exception");
-
+            if (printer == null) {
+                throw new Error("Invalid proxy");
             }
-             long estimatedTime = System.currentTimeMillis() - startTime;
-        System.out.println("Time: "+estimatedTime+" ms \n\n");
+
+            // Callback configuration
+            com.zeroc.Ice.ObjectAdapter adapter = communicator.createObjectAdapter("Callback");
+            com.zeroc.Ice.Object obj = new Callback();
+            com.zeroc.Ice.ObjectPrx objectPrx = adapter.add(obj, com.zeroc.Ice.Util.stringToIdentity("callback"));
+            adapter.activate();
+            Demo.CallbackPrx callPrx = Demo.CallbackPrx.uncheckedCast(objectPrx);
+
+            hostname = f("hostname");
+
+            if (args.length == 1) {
+                // sendSingleRequest(printer, (args[0]));
+            } else if (args.length == 2) {
+                // runStressExperiment(printer, args[0], args[1]);
+            } else {
+                run(printer, callPrx);
+            }
 
         }
     }
 
-    public static void sendSingleRequest(Demo.PrinterPrx printer, String number){
-
-        String msg = hostname+":"+number;
-    
-
-       
-            System.out.println("\n\nRequest sent from:");
-            printer.printString(msg);
-            
-            System.out.println(hostname);
-            System.out.println("Number: "+number);
-
-        
-      
-        
-    }
-    
-
-    public static void runStressExperiment(Demo.PrinterPrx printer, String number, String numberOfConcurrentRequests)
-    {
-
-
-
-
-            int coreCount = Runtime.getRuntime().availableProcessors();
-            ExecutorService pool = Executors.newFixedThreadPool(coreCount);
-
-            for(int i=0; i<Integer.parseInt(numberOfConcurrentRequests); i++){
-            
-            
-                pool.execute(
-
-                    new Task(printer, number, hostname)
-
-                );
-
-
-            }
-
-            pool.shutdown();
-            while(!pool.isTerminated()){
-              Thread.yield();
-            }
-
-        
-       
-
-    }
-
     /*
-     *  CLI FIBONACCI REQUEST LOOP
+     * CLI FIBONACCI REQUEST LOOP
      */
-    public static void run(Demo.PrinterPrx printer)
-    {
+    public static void run(Demo.PrinterPrx printer, Demo.CallbackPrx callPrx) {
 
         printCLI();
 
-
-        try{
+        try {
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-            
-         
-            while(true){
+
+            while (true) {
 
                 String line = reader.readLine();
-            
-                String msg = hostname+":"+line;
-                System.out.println("--> "+printer.printString(msg));
-                
 
-                if(line.equals(EXIT)){
-                    System.out.println("\nCLOSING CONNECTION...\n-------------------------------------------------- \n\n");
+                String msg = hostname + ":" + line;
+                printer.printString(msg, callPrx);
+
+                if (line.equals(EXIT)) {
+                    System.out.println(
+                            "\nCLOSING CONNECTION...\n-------------------------------------------------- \n\n");
                     break;
                 }
 
-
             }
 
-        }catch(IOException e){
+        } catch (IOException e) {
 
         }
 
     }
 
-
     /*
-     *  UTILS
+     * UTILS
      */
-    public static String f(String m)
-    {
+    public static String f(String m) {
 
         String str = null, output = "";
 
@@ -153,31 +87,21 @@ public class Client
         try {
             Process p = Runtime.getRuntime().exec(m);
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream())); 
-            while ((str = br.readLine()) != null) 
-            output += str + System.getProperty("line.separator"); 
-            br.close(); 
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            while ((str = br.readLine()) != null)
+                output += str + System.getProperty("line.separator");
+            br.close();
             return output;
-        }
-        catch(Exception ex) {
+        } catch (Exception ex) {
         }
 
         return output;
     }
-    
-    public static void printCLI()
-    {
+
+    public static void printCLI() {
         System.out.println("\n-------------------------------------------------- \n");
-        System.out.println("HELLO "+hostname);
+        System.out.println("HELLO " + hostname);
         System.out.println("PLEASE ENTER A NUMBER OR 'exit' TO EXIT: \n");
     }
 
-   
 }
-
-
-
-
-
-
-

@@ -1,6 +1,3 @@
-import java.io.*;
-
-
 public class Server
 {
     public static void main(String[] args)
@@ -20,6 +17,7 @@ public class Server
                     System.out.println(v);
                 }
             }
+
             com.zeroc.Ice.ObjectAdapter adapter = communicator.createObjectAdapter("Printer");
             com.zeroc.Ice.Object object = new PrinterI();
             adapter.add(object, com.zeroc.Ice.Util.stringToIdentity("SimplePrinter"));
@@ -27,9 +25,10 @@ public class Server
             communicator.waitForShutdown();
 
             printCLI();
+
         }
     }
-
+    
     public static void printCLI(){
         System.out.println("\n-------------------------------------------------- \n\n");
         System.out.println("SERVER RUNNING: ");
