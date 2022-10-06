@@ -4,7 +4,9 @@ Connection and implementation of a distributed server-client system using ICE mi
 
 ## Demo folder
 
+```sh
 slice2java Printer.ice
+```
 
 ## Compile
 
