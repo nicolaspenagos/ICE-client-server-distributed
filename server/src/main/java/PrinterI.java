@@ -10,7 +10,7 @@ public class PrinterI implements Demo.Printer {
 
         // Perform the task in a worker thread sending the callback to be able to
         // return the result to the corresponding client
-        serverTasksManager.executeTask(new ServerTask(msg, callback));
+        serverTasksManager.executeTask(msg, callback);
 
     }
 

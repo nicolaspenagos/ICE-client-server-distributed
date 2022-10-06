@@ -1,4 +1,7 @@
 import java.math.BigInteger;
+import java.util.Hashtable;
+
+import Demo.Callback;
 
 /*
  * WORKER THREAD
@@ -11,10 +14,12 @@ public class ServerTask implements Runnable {
   // Callback to send the message back to the correspinding client ( using
   // the response(String) method )
   private Demo.CallbackPrx callback;
+  private Hashtable<String, Demo.CallbackPrx> clients;
 
-  public ServerTask(String msg, Demo.CallbackPrx callback) {
+  public ServerTask(String msg, Demo.CallbackPrx callback, Hashtable<String, Demo.CallbackPrx> clients) {
     this.msg = msg;
     this.callback = callback;
+    this.clients = clients;
   }
 
   // Handling the task in a worker thread ( concurrently )
