@@ -2,6 +2,10 @@
 
 Connection and implementation of a distributed server-client system using ICE middleware.
 
+## Demo folder
+
+slice2java Printer.ice
+
 ## Compile
 
 ```sh
