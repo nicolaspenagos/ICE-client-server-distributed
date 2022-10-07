@@ -3,6 +3,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
+
 import Demo.Callback;
 
 /*
@@ -23,7 +24,7 @@ public class ServerTasksManager{
 
 		// Hashtable for storing client hostnames
 		clients = new Hashtable<String, Demo.CallbackPrx>();
-		semaphore = new Semaphore(0);
+		semaphore = new Semaphore(1);
 
 	}
 
@@ -37,12 +38,29 @@ public class ServerTasksManager{
 		return instance;
 	}
 
+	public void addClient(String msg, Demo.CallbackPrx callback){
+		String[] parts = msg.split(":");
+		String clientHostname = parts[0];
+		try{
+			semaphore.acquire();
+			if(!clients.containsKey(clientHostname)){
+				clients.put(msg, callback);
+				System.out.println(clientHostname + " registred");
+			}			
+		} catch (InterruptedException e) {
+            e.printStackTrace();
+        }finally{
+            semaphore.release();
+        }
+	}
+
 	public ExecutorService getPool(){
 		return pool;
 	}
 
 	public void executeTask(String msg, Demo.CallbackPrx callback){
-		this.pool.execute(new ServerTask(msg, callback, clients));
+		this.addClient(msg, callback);
+		this.pool.execute(new ServerTask(msg, callback, this.clients, this.semaphore));
 
 	}
 }
