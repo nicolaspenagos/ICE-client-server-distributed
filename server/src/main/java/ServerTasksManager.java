@@ -13,7 +13,7 @@ public class ServerTasksManager{
 	
 	private ExecutorService pool;
 	private static ServerTasksManager instance;
-	private Hashtable<String, Demo.CallbackPrx> clients;
+	public static Hashtable<String, Demo.CallbackPrx> clients;
 	private Semaphore semaphore;
 
 	private ServerTasksManager(){
@@ -39,13 +39,15 @@ public class ServerTasksManager{
 	}
 
 	public void addClient(String msg, Demo.CallbackPrx callback){
+
 		String[] parts = msg.split(":");
-		String clientHostname = parts[0];
+		String clientHostname = parts[0].trim();
+
 		try{
 			semaphore.acquire();
 			if(!clients.containsKey(clientHostname)){
-				clients.put(msg, callback);
-				System.out.println(clientHostname + " registred");
+				clients.put(clientHostname, callback);
+				//System.out.println(clientHostname + " registred");
 			}			
 		} catch (InterruptedException e) {
             e.printStackTrace();

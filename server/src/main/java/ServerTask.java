@@ -1,8 +1,10 @@
+import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.util.Hashtable;
 import java.util.concurrent.Semaphore;
 import java.util.Map;
-
+import java.io.*;
+import java.util.*;
 import Demo.Callback;
 
 /*
@@ -19,7 +21,8 @@ public class ServerTask implements Runnable {
   private Hashtable<String, Demo.CallbackPrx> clients;
   private Semaphore semaphore;
 
-  public ServerTask(String msg, Demo.CallbackPrx callback, Hashtable<String, Demo.CallbackPrx> clients, Semaphore semaphore) {
+  public ServerTask(String msg, Demo.CallbackPrx callback, Hashtable<String, Demo.CallbackPrx> clients,
+      Semaphore semaphore) {
     this.msg = msg;
     this.callback = callback;
     this.clients = clients;
@@ -31,108 +34,136 @@ public class ServerTask implements Runnable {
 
     System.out.println("\n");
 
-    System.out.println(msg);
+    // System.out.println(msg);
     String[] parts = msg.split(":");
+
     String clientHostname = parts[0];
-   
+
+    String[] opcion = parts[1].split(" ");
+
+    System.out.println(Arrays.toString(parts) + "\n" + Arrays.toString(opcion));
     
+
+
     try {
 
-      if(parts[1].equalsIgnoreCase("List clients")){
-       
-        String response = listClients();
-        System.out.print(response);
-        callback.response(response);
-          
-         
-      } else if(parts[1].equals("BC")){
+      switch (opcion[0].toLowerCase()) {
+        
+        case "listclients":
+          String response = listClients();
+          callback.response(response);
+          break;
 
-        try {
-            semaphore.acquire();
-            for (Map.Entry<String, Demo.CallbackPrx> e : clients.entrySet()){
-              System.out.println("Broadcast from: " + clientHostname + " to: " + e.getKey() + " succesfully sent");
-              e.getValue().response("Broadcast from: " + clientHostname + msg);
-            }
-            
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }finally{
-            semaphore.release();
-        }
-           
+        case "bc":
+          doBroadcast(clientHostname, parts[1]);
+          break;
 
-      } else if(parts[1].contains("to")){
-        //if msg contains to, parts should be like this
-        //xhgrid10: to xhgrid12: msg
-        //parts[0] hostname, parts[1] to xhgrid12, msg
+        case "to":
+          // if msg contains to, parts should be like this
+          // xhgrid10: to xhgrid12: msg
+          // parts[0] hostname, parts[1] to xhgrid12, msg
+          String toHost = parts[1];
+          sendToHost(toHost, clientHostname);
+          break;
 
-        String toHost = parts[1];
-        toHost.replace("to", "");
-        toHost.replace(" ", "");
-        System.out.println("Message to: " + toHost + " from: " + clientHostname);
+        default:
 
-        try {
-            semaphore.acquire();
-            for (Map.Entry<String, Demo.CallbackPrx> e : clients.entrySet()){
-              if(e.getKey().equals(toHost)){
-                e.getValue().response("Message from: " + clientHostname + msg);
-                System.out.println("Message from: " + clientHostname + msg + " succesfully sent");
-              }
-            }         
-            
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }finally{
-            semaphore.release();
-        }
+          BigInteger num = new BigInteger(parts[1]);
+          manageFiboRequest(num, clientHostname);
 
-
-      } else{ //else{
-
-        BigInteger num = new BigInteger(parts[1]);
-        if (num.compareTo(BigInteger.ZERO) > 0) {
-          callback.response(fibo(num, clientHostname).toString());
-        } else {
-          System.out.print(msg);
-          callback.response(BigInteger.ZERO.toString());
-        }
       }
 
     } catch (NumberFormatException e) {
 
-      if (parts[1].equals("exit")) {
-        System.out.print(parts[0] + " DISCONNECTED");
-      } else {
-        System.out.print(parts[0] + ": " + parts[1]);
-      }
+      manageNumberFormatException(parts);
 
-      callback.response(BigInteger.ZERO.toString());
+    } catch (InterruptedException e) {
+
+      semaphore.release();
+      e.printStackTrace();
 
     }
 
   }
 
-  public String listClients(){
+  public void manageNumberFormatException(String[] parts) {
+
+    if (parts[1].equals("exit")) {
+      System.out.print(parts[0] + " DISCONNECTED");
+    } else {
+      System.out.print(parts[0] + ": " + parts[1]);
+    }
+
+    callback.response(BigInteger.ZERO.toString());
+
+  }
+
+  public void manageFiboRequest(BigInteger num, String clientHostname) {
+
+    if (num.compareTo(BigInteger.ZERO) > 0) {
+      callback.response(fibo(num, clientHostname).toString());
+    } else {
+      System.out.print(msg);
+      callback.response(BigInteger.ZERO.toString());
+    }
+
+  }
+
+  public void sendToHost(String toHost, String clientHostname) throws InterruptedException {
+
+    toHost = toHost.replace("to", "");
+    toHost = toHost.replace(" ", "");
+    System.out.println("Message to: " + toHost + " from: " + clientHostname);
+
+    semaphore.acquire();
+
+
+      
+      Demo.CallbackPrx callbackClient = ServerTasksManager.clients.get(toHost);
+      if (callbackClient!=null) {
+        callbackClient.response("Message from: " + clientHostname + msg);
+        System.out.println("Message from: " + clientHostname + msg + " succesfully sent");
+      }
+    
+
+    semaphore.release();
+
+  }
+
+  public void doBroadcast(String clientHostname, String msg) throws InterruptedException {
+
+    msg = msg.replace("bc", "");
+
+    semaphore.acquire();
+
+    for (Map.Entry<String, Demo.CallbackPrx> e : ServerTasksManager.clients.entrySet()) {
+      System.out.println("Broadcast from: " + clientHostname + " to: " + e.getKey() + " succesfully sent");
+      e.getValue().response("Broadcast from: " + clientHostname + msg);
+    }
+
+    semaphore.release();
+
+  }
+
+  public String listClients() throws InterruptedException {
+
     String clientsList = "CLIENTS IN THE SERVER" + "\n";
 
-    try {
-      semaphore.acquire();
-            
-      for (Map.Entry<String, Demo.CallbackPrx> e : clients.entrySet()){
-        clientsList += "Host: " + e.getKey() + "\n"; 
-        System.out.println("***" + e.getKey());
-      }
-            
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }finally{
-      semaphore.release();
+    semaphore.acquire();
+
+    for (Map.Entry<String, Demo.CallbackPrx> e : ServerTasksManager.clients.entrySet()) {
+      clientsList += "    Host: " + e.getKey() + "\n";
+      // System.out.println("***" + e.getKey());
     }
 
-    if(clientsList.equals("")){
+    semaphore.release();
+
+    if (clientsList.equals("")) {
       clientsList = "El servidor no tiene clientes" + "\n";
     }
+
     return clientsList;
+
   }
 
   public BigInteger fibo(BigInteger num, String clientHostname) {
@@ -148,7 +179,7 @@ public class ServerTask implements Runnable {
     }
 
     return fibo1;
-    
+
   }
 
 }
