@@ -48,6 +48,7 @@ public class Client {
     public static void run(Demo.PrinterPrx printer, Demo.CallbackPrx callPrx) {
 
         printCLI();
+        printer.printString(hostname + ":REGISTER", callPrx);
 
         try {
 
@@ -101,7 +102,11 @@ public class Client {
     public static void printCLI() {
         System.out.println("\n-------------------------------------------------- \n");
         System.out.println("HELLO " + hostname);
-        System.out.println("PLEASE ENTER A NUMBER OR 'exit' TO EXIT: \n");
+        System.out.println("\nINSTRUCTIONS:");
+        System.out.println("TO GET THE FIBONACCI OF A NUMBER, ENTER THE NUMBER e.g. 10");
+        System.out.println("TO SEND A MSG TO ALL THE CONNECTED CLIENTS, ENTER THE COMMAND bc  e.g. bc hello to everyone");
+        System.out.println("TO SEND A MSG TO A SPECIFIC CLIENT, ENTER THE COMMAND to FOLLOWEB BY THE HOSTNAME AND : MSG e.g. to hgrid13: hello");
+        System.out.println("TO LIST ALL THE CONNECTED CLIENTS, USE THE COMAND listClients e.g. listClients\n");
     }
 
 }

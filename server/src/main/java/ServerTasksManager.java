@@ -4,8 +4,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 
-import Demo.Callback;
-
 /*
  * THREADS POOL
  */
@@ -13,7 +11,7 @@ public class ServerTasksManager{
 	
 	private ExecutorService pool;
 	private static ServerTasksManager instance;
-	public static Hashtable<String, Demo.CallbackPrx> clients;
+	private Hashtable<String, Demo.CallbackPrx> clients;
 	private Semaphore semaphore;
 
 	private ServerTasksManager(){
@@ -38,21 +36,22 @@ public class ServerTasksManager{
 		return instance;
 	}
 
-	public void addClient(String msg, Demo.CallbackPrx callback){
+	public void addClient(String hostname, Demo.CallbackPrx callback){
 
-		String[] parts = msg.split(":");
-		String clientHostname = parts[0].trim();
+	
+	
 
 		try{
 			semaphore.acquire();
-			if(!clients.containsKey(clientHostname)){
-				clients.put(clientHostname, callback);
-				//System.out.println(clientHostname + " registred");
+			if(!clients.containsKey(hostname)){
+				clients.put(hostname, callback);
 			}			
+	
 		} catch (InterruptedException e) {
             e.printStackTrace();
         }finally{
             semaphore.release();
+			System.out.println("\n"+hostname+ " CONNECTED");
         }
 	}
 
@@ -60,9 +59,17 @@ public class ServerTasksManager{
 		return pool;
 	}
 
-	public void executeTask(String msg, Demo.CallbackPrx callback){
-		this.addClient(msg, callback);
-		this.pool.execute(new ServerTask(msg, callback, this.clients, this.semaphore));
+	public void executeTask(String clientMsg, Demo.CallbackPrx callback){
 
+		String[] parts = clientMsg.split(":");
+		String hostname = parts[0].trim();
+		String msg = parts[1];
+
+		if(clients.containsKey(hostname)){
+			this.pool.execute(new ServerTask(hostname, msg, this.semaphore, this.clients));
+		}else{
+			this.addClient(hostname, callback);
+		}
+		
 	}
 }

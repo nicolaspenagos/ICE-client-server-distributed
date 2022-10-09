@@ -1,11 +1,9 @@
-import java.lang.reflect.Array;
 import java.math.BigInteger;
-import java.util.Hashtable;
 import java.util.concurrent.Semaphore;
 import java.util.Map;
-import java.io.*;
-import java.util.*;
-import Demo.Callback;
+import java.util.Hashtable;
+
+
 
 /*
  * WORKER THREAD
@@ -14,40 +12,34 @@ public class ServerTask implements Runnable {
 
   // Message from client
   private String msg;
+  private String clientHostname;
 
   // Callback to send the message back to the correspinding client ( using
   // the response(String) method )
   private Demo.CallbackPrx callback;
-  private Hashtable<String, Demo.CallbackPrx> clients;
   private Semaphore semaphore;
+  private Hashtable<String, Demo.CallbackPrx> clients;
 
-  public ServerTask(String msg, Demo.CallbackPrx callback, Hashtable<String, Demo.CallbackPrx> clients,
-      Semaphore semaphore) {
+  public ServerTask(String hostname, String msg, Semaphore semaphore, 
+      Hashtable<String, Demo.CallbackPrx> clients) {
+
+    this.clientHostname = hostname;
     this.msg = msg;
-    this.callback = callback;
-    this.clients = clients;
     this.semaphore = semaphore;
+    this.clients = clients;
+    this.callback = clients.get(hostname);
+
   }
 
   // Handling the task in a worker thread ( concurrently )
   public void run() {
 
     System.out.println("\n");
-
-    // System.out.println(msg);
-    String[] parts = msg.split(":");
-
-    String clientHostname = parts[0];
-
-    String[] opcion = parts[1].split(" ");
-
-    System.out.println(Arrays.toString(parts) + "\n" + Arrays.toString(opcion));
-    
-
+    String[] option = msg.split(" ");
 
     try {
 
-      switch (opcion[0].toLowerCase()) {
+      switch (option[0].toLowerCase()) {
         
         case "listclients":
           String response = listClients();
@@ -55,27 +47,27 @@ public class ServerTask implements Runnable {
           break;
 
         case "bc":
-          doBroadcast(clientHostname, parts[1]);
+          doBroadcast(clientHostname, msg);
           break;
 
         case "to":
           // if msg contains to, parts should be like this
           // xhgrid10: to xhgrid12: msg
           // parts[0] hostname, parts[1] to xhgrid12, msg
-          String toHost = parts[1];
+          String toHost = msg;
           sendToHost(toHost, clientHostname);
           break;
 
         default:
 
-          BigInteger num = new BigInteger(parts[1]);
+          BigInteger num = new BigInteger(msg);
           manageFiboRequest(num, clientHostname);
 
       }
 
     } catch (NumberFormatException e) {
 
-      manageNumberFormatException(parts);
+      manageNumberFormatException();
 
     } catch (InterruptedException e) {
 
@@ -86,12 +78,12 @@ public class ServerTask implements Runnable {
 
   }
 
-  public void manageNumberFormatException(String[] parts) {
+  public void manageNumberFormatException() {
 
-    if (parts[1].equals("exit")) {
-      System.out.print(parts[0] + " DISCONNECTED");
+    if (msg.equals("exit")) {
+      System.out.print(clientHostname + " DISCONNECTED");
     } else {
-      System.out.print(parts[0] + ": " + parts[1]);
+      System.out.print(clientHostname + ": " + msg);
     }
 
     callback.response(BigInteger.ZERO.toString());
@@ -119,10 +111,10 @@ public class ServerTask implements Runnable {
 
 
       
-      Demo.CallbackPrx callbackClient = ServerTasksManager.clients.get(toHost);
+      Demo.CallbackPrx callbackClient = clients.get(toHost);
       if (callbackClient!=null) {
         callbackClient.response("Message from: " + clientHostname + msg);
-        System.out.println("Message from: " + clientHostname + msg + " succesfully sent");
+        System.out.println("Message succesfully sent");
       }
     
 
@@ -136,7 +128,7 @@ public class ServerTask implements Runnable {
 
     semaphore.acquire();
 
-    for (Map.Entry<String, Demo.CallbackPrx> e : ServerTasksManager.clients.entrySet()) {
+    for (Map.Entry<String, Demo.CallbackPrx> e : clients.entrySet()) {
       System.out.println("Broadcast from: " + clientHostname + " to: " + e.getKey() + " succesfully sent");
       e.getValue().response("Broadcast from: " + clientHostname + msg);
     }
@@ -151,7 +143,7 @@ public class ServerTask implements Runnable {
 
     semaphore.acquire();
 
-    for (Map.Entry<String, Demo.CallbackPrx> e : ServerTasksManager.clients.entrySet()) {
+    for (Map.Entry<String, Demo.CallbackPrx> e : clients.entrySet()) {
       clientsList += "    Host: " + e.getKey() + "\n";
       // System.out.println("***" + e.getKey());
     }
