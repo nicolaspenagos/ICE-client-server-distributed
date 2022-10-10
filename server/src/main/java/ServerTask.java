@@ -3,8 +3,6 @@ import java.util.concurrent.Semaphore;
 import java.util.Map;
 import java.util.Hashtable;
 
-
-
 /*
  * WORKER THREAD
  */
@@ -20,7 +18,7 @@ public class ServerTask implements Runnable {
   private Semaphore semaphore;
   private Hashtable<String, Demo.CallbackPrx> clients;
 
-  public ServerTask(String hostname, String msg, Semaphore semaphore, 
+  public ServerTask(String hostname, String msg, Semaphore semaphore,
       Hashtable<String, Demo.CallbackPrx> clients) {
 
     this.clientHostname = hostname;
@@ -40,7 +38,7 @@ public class ServerTask implements Runnable {
     try {
 
       switch (option[0].toLowerCase()) {
-        
+
         case "listclients":
           String response = listClients();
           callback.response(response);
@@ -54,8 +52,7 @@ public class ServerTask implements Runnable {
           // if msg contains to, parts should be like this
           // xhgrid10: to xhgrid12: msg
           // parts[0] hostname, parts[1] to xhgrid12, msg
-          String toHost = msg;
-          sendToHost(toHost, clientHostname);
+          sendToHost(clientHostname);
           break;
 
         default:
@@ -101,22 +98,21 @@ public class ServerTask implements Runnable {
 
   }
 
-  public void sendToHost(String toHost, String clientHostname) throws InterruptedException {
+  public void sendToHost(String clientHostname) throws InterruptedException {
 
-    toHost = toHost.replace("to", "");
+    String[] parts = msg.split(":");
+    String toHost = parts[0].replace("to", "");
     toHost = toHost.replace(" ", "");
+
     System.out.println("Message to: " + toHost + " from: " + clientHostname);
 
     semaphore.acquire();
 
-
-      
-      Demo.CallbackPrx callbackClient = clients.get(toHost);
-      if (callbackClient!=null) {
-        callbackClient.response("Message from: " + clientHostname + msg);
-        System.out.println("Message succesfully sent");
-      }
-    
+    Demo.CallbackPrx callbackClient = clients.get(toHost);
+    if (callbackClient != null) {
+      callbackClient.response("Message from: " + clientHostname + "\n " + parts[1]);
+      System.out.println("Message succesfully sent");
+    }
 
     semaphore.release();
 

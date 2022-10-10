@@ -61,6 +61,10 @@ public class Client {
                 String msg = hostname + ":" + line;
                 printer.printString(msg, callPrx);
 
+                if(line.split(" ")[0].equals("to")){
+                    System.out.println("");
+                }
+
                 if (line.equals(EXIT)) {
                     System.out.println(
                             "\nCLOSING CONNECTION...\n-------------------------------------------------- \n\n");

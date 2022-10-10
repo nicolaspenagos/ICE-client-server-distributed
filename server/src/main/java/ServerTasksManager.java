@@ -63,8 +63,10 @@ public class ServerTasksManager{
 
 		String[] parts = clientMsg.split(":");
 		String hostname = parts[0].trim();
-		String msg = parts[1];
+		String msg = (parts.length<3)?parts[1]: parts[1]+":"+ parts[2];
+		
 
+		System.out.println(msg);
 		if(clients.containsKey(hostname)){
 			this.pool.execute(new ServerTask(hostname, msg, this.semaphore, this.clients));
 		}else{
