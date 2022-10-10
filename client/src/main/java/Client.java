@@ -6,6 +6,8 @@ public class Client {
 
     public static final String EXIT = "exit";
     private static String hostname = "";
+    public static long startTime = 0;
+    public static int responseCounter = 0;
 
     public static void main(String[] args) {
 
@@ -14,8 +16,11 @@ public class Client {
         try (com.zeroc.Ice.Communicator communicator = com.zeroc.Ice.Util.initialize(args, "config.client",
                 extraArgs)) {
 
+            long startTime = System.currentTimeMillis();
+
             // Printer configuration
-            Demo.PrinterPrx twoway = Demo.PrinterPrx.checkedCast(communicator.propertyToProxy("Printer.Proxy")).ice_twoway().ice_secure(false);
+            Demo.PrinterPrx twoway = Demo.PrinterPrx.checkedCast(communicator.propertyToProxy("Printer.Proxy"))
+                    .ice_twoway().ice_secure(false);
             Demo.PrinterPrx printer = twoway.ice_twoway();
 
             if (printer == null) {
@@ -31,8 +36,10 @@ public class Client {
 
             hostname = f("hostname");
 
+            printer.printString(hostname + ":REGISTER", callPrx);
+
             if (args.length == 1) {
-                // sendSingleRequest(printer, (args[0]));
+                sendSingleRequest(printer, callPrx, args[0]);
             } else if (args.length == 2) {
                 // runStressExperiment(printer, args[0], args[1]);
             } else {
@@ -40,6 +47,19 @@ public class Client {
             }
 
         }
+
+    }
+
+    public static void sendSingleRequest(Demo.PrinterPrx printer, Demo.CallbackPrx callbackPrx, String number) {
+
+        String msg = hostname + ":" + number;
+
+        System.out.println("\n\nRequest sent from:");
+        printer.printString(msg, callbackPrx);
+
+        System.out.println(hostname);
+        System.out.println("Number: " + number);
+
     }
 
     /*
@@ -48,7 +68,6 @@ public class Client {
     public static void run(Demo.PrinterPrx printer, Demo.CallbackPrx callPrx) {
 
         printCLI();
-        printer.printString(hostname + ":REGISTER", callPrx);
 
         try {
 
@@ -59,7 +78,9 @@ public class Client {
                 String line = reader.readLine();
 
                 String msg = hostname + ":" + line;
+                startTime = System.currentTimeMillis();
                 printer.printString(msg, callPrx);
+                
 
                 if (line.equals(EXIT)) {
                     System.out.println(
@@ -75,6 +96,7 @@ public class Client {
 
     }
 
+   
     /*
      * UTILS
      */
@@ -104,8 +126,10 @@ public class Client {
         System.out.println("HELLO " + hostname);
         System.out.println("\nINSTRUCTIONS:");
         System.out.println("TO GET THE FIBONACCI OF A NUMBER, ENTER THE NUMBER e.g. 10");
-        System.out.println("TO SEND A MSG TO ALL THE CONNECTED CLIENTS, ENTER THE COMMAND bc  e.g. bc hello to everyone");
-        System.out.println("TO SEND A MSG TO A SPECIFIC CLIENT, ENTER THE COMMAND to FOLLOWEB BY THE HOSTNAME AND : MSG e.g. to hgrid13: hello");
+        System.out
+                .println("TO SEND A MSG TO ALL THE CONNECTED CLIENTS, ENTER THE COMMAND bc  e.g. bc hello to everyone");
+        System.out.println(
+                "TO SEND A MSG TO A SPECIFIC CLIENT, ENTER THE COMMAND to FOLLOWEB BY THE HOSTNAME AND : MSG e.g. to hgrid13: hello");
         System.out.println("TO LIST ALL THE CONNECTED CLIENTS, USE THE COMAND listClients e.g. listClients\n");
     }
 

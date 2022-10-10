@@ -6,4 +6,4 @@ Printer.Proxy=SimplePrinter:tcp -p 9099
 Ice.Default.Host=10.147.19.201
 
 # Where to send the callback response (Client IP)
-Callback.Endpoints = default -h 10.147.19.36 -p 8003
+Callback.Endpoints = default -h 10.147.19.215 -p 8031

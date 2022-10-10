@@ -61,7 +61,7 @@ III. RESULTADOS:
 
 -------------------------------------
 
-	2. Para n = 50000 y 4 máquinas
+	3. Para n = 50000 y 4 máquinas
 
 	hgrid3
 	Number: 50000
@@ -81,7 +81,7 @@ III. RESULTADOS:
 
 -------------------------------------
 
-	3. Para n = 35000 y 3 máquinas
+	4. Para n = 35000 y 3 máquinas
 
 	hgrid12
 	Number: 35000
@@ -97,7 +97,7 @@ III. RESULTADOS:
 
 -------------------------------------
 
-	4. Para n = 45000 y 3 máquinas
+	5. Para n = 45000 y 3 máquinas
 
 	hgrid12
 	Number: 45000
@@ -113,7 +113,7 @@ III. RESULTADOS:
 
 -------------------------------------
 
-	5. Para n = 70000 y 2 máquinas
+	6. Para n = 70000 y 2 máquinas
 
 	hgrid12
 	Number: 70000
@@ -125,7 +125,7 @@ III. RESULTADOS:
 
 -------------------------------------
 
-	6. Para n = 60000 y 2 máquinas
+	7. Para n = 60000 y 2 máquinas
 
 	hgrid12
 	Number: 60000
